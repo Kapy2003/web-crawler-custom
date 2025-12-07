@@ -9,9 +9,9 @@ REQUIRED_KEYS = [
 ]
 # Optional keys that enhance the data but aren't required
 OPTIONAL_KEYS = [
-    "rating",
-    "resolution",
-    "year",
-    "description",
+    # "rating",
+    # "resolution",
+    # "year",
+    # "description",
     "watch_url",
 ]
