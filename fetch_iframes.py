@@ -56,7 +56,7 @@ async def fetch_episode_iframes(
 async def enrich_anime_with_iframes(
     csv_input_file: str,
     csv_output_file: str,
-    max_episodes: int = 283,
+    max_episodes: int = 10000,
 ) -> None:
     """
     Reads anime from CSV and fetches iframe URLs for first episode of each anime.
@@ -105,6 +105,9 @@ async def enrich_anime_with_iframes(
     try:
         with open(csv_output_file, 'a', newline='', encoding='utf-8') as f_out:
             fieldnames = list(animes[0].keys()) if animes else []
+            if 'embed_url' not in fieldnames:
+                fieldnames.append('embed_url')
+            
             writer = csv.DictWriter(f_out, fieldnames=fieldnames)
             
             # Write header if file didn't exist
