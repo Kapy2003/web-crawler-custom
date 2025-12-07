@@ -1,5 +1,7 @@
-import asyncio
 import csv
+import json
+import asyncio
+import os
 from typing import List
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
 from utils.iframe_extractor import extract_iframe_src
@@ -40,7 +42,9 @@ async def fetch_episode_iframes(
                 print(f"✓ Found iframe for {anime_slug} ep-{episode_num}")
                 return iframe_src
             else:
-                print(f"✗ No iframe found for {anime_slug} ep-{episode_num}")
+                # Less verbose failure to avoid spamming console during normal stop
+                # print(f"✗ No iframe found for {anime_slug} ep-{episode_num}")
+                pass
         else:
             print(f"✗ Failed to fetch {url}: {result.error_message}")
     except Exception as e:
@@ -81,41 +85,83 @@ async def enrich_anime_with_iframes(
         return
     
     # Fetch iframes
-    async with AsyncWebCrawler(config=browser_config) as crawler:
-        for idx, anime in enumerate(animes, 1):
-            slug = anime.get('slug', '')
-            
-            if not slug:
-                print(f"[{idx}/{len(animes)}] Skipping anime with no slug")
-                continue
-            
-            print(f"[{idx}/{len(animes)}] Fetching iframe for {slug}...")
-            
-            # Try to get iframe from episode 1
-            embed_url = await fetch_episode_iframes(
-                crawler,
-                slug,
-                episode_num=1,
-                session_id="iframe_session",
-            )
-            
-            anime['embed_url'] = embed_url
-            
-            # Rate limiting
-            await asyncio.sleep(0.5)
+    # Check for existing progress
+    processed_slugs = set()
+    file_exists = os.path.exists(csv_output_file)
     
-    # Write output CSV
+    if file_exists:
+        try:
+            with open(csv_output_file, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row.get('slug'):
+                        processed_slugs.add(row['slug'])
+            print(f"resuming: found {len(processed_slugs)} already processed animes.")
+        except Exception as e:
+            print(f"Error reading existing output file: {e}")
+            return
+
+    # Open output file in append mode
     try:
-        fieldnames = list(animes[0].keys()) if animes else []
-        
-        with open(csv_output_file, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(animes)
-        
-        print(f"\nSaved {len(animes)} anime with embed URLs to {csv_output_file}")
+        with open(csv_output_file, 'a', newline='', encoding='utf-8') as f_out:
+            fieldnames = list(animes[0].keys()) if animes else []
+            writer = csv.DictWriter(f_out, fieldnames=fieldnames)
+            
+            # Write header if file didn't exist
+            if not file_exists and fieldnames:
+                writer.writeheader()
+            
+            # Fetch iframes
+            async with AsyncWebCrawler(config=browser_config) as crawler:
+                for idx, anime in enumerate(animes, 1):
+                    slug = anime.get('slug', '')
+                    
+                    if not slug:
+                        print(f"[{idx}/{len(animes)}] Skipping anime with no slug")
+                        continue
+                    
+                    if slug in processed_slugs:
+                        print(f"[{idx}/{len(animes)}] Skipping {slug} (already processed)")
+                        continue
+                    
+                    print(f"[{idx}/{len(animes)}] Fetching episodes for {slug}...")
+                    
+                    episode_map = {}
+                    for ep_num in range(1, max_episodes + 1):
+                        # Try to get iframe for the current episode
+                        iframe_src = await fetch_episode_iframes(
+                            crawler,
+                            slug,
+                            episode_num=ep_num,
+                            session_id="iframe_session",
+                        )
+                        
+                        if iframe_src:
+                            episode_map[str(ep_num)] = iframe_src
+                        else:
+                            # If we can't find episode 1, it's likely the anime isn't there or slug is wrong.
+                            # If we find 1 but not 2, maybe it's a movie or single ep.
+                            # If we miss a middle one, we might stop early.
+                            # For now, we assume sequential and stop on first miss to save time.
+                            print(f"Stopped at episode {ep_num} (not found)")
+                            break
+                        
+                        # Small delay between episodes of the same anime
+                        await asyncio.sleep(0.2)
+                    
+                    # Store the result as a JSON string
+                    anime['embed_url'] = json.dumps(episode_map)
+                    print(f"Collected {len(episode_map)} episodes for {slug}")
+                    
+                    # Write immediately and flush
+                    writer.writerow(anime)
+                    f_out.flush()
+                    
+                    # Rate limiting between animes
+                    await asyncio.sleep(0.5)
+            
     except Exception as e:
-        print(f"Error writing CSV: {e}")
+        print(f"Error during processing: {e}")
 
 
 async def main():

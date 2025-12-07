@@ -24,7 +24,7 @@ async def crawl_anime_az_list():
     page_number = 1
     all_animes = []
     seen_names = set()
-    max_pages = 5  # Limit to 5 pages for testing
+    max_pages = 283  # Limit to 5 pages for testing
 
     # Start the web crawler context
     async with AsyncWebCrawler(config=browser_config) as crawler:
