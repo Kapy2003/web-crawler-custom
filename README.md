@@ -26,13 +26,22 @@ sudo apt install python3 python3-venv git
 
 **Arch Linux / Manjaro**
 ```bash
-sudo pacman -S python python-virtualenv git
+sudo pacman -S python git
 ```
 
 **Fedora**
 ```bash
 sudo dnf install python3 git
 ```
+
+**macOS** (using Homebrew)
+```bash
+brew install python git
+```
+
+**Windows**
+- Install [Python](https://www.python.org/downloads/) (Check "Add Python to PATH")
+- Install [Git](https://git-scm.com/download/win)
 
 ### 2. Project Setup
 
@@ -42,12 +51,36 @@ sudo dnf install python3 git
    cd web-crawler-custom
    ```
 
-2. **Create a local virtual environment**:
-   This keeps all libraries inside this folder, so your system stays clean.
+### 2. Project Setup
+
+1. **Clone the repository**:
    ```bash
+   git clone https://github.com/Kapy2003/web-crawler-custom.git
+   cd web-crawler-custom
+   ```
+
+2. **Create and Activate Virtual Environment**:
+
+   #### 🐧 Linux / 🍎 macOS
+   ```bash
+   # Create (.venv folder)
    python3 -m venv .venv
+   
+   # Activate
    source .venv/bin/activate
-   # On Windows use: .venv\Scripts\activate
+   ```
+
+   #### 🪟 Windows (PowerShell / CMD)
+   ```powershell
+   # Create
+   python -m venv .venv
+   
+   # Activate
+   .venv\Scripts\activate
+   ```
+   *Note: If you get a permission error on PowerShell, run the following command:*
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
    ```
 
 3. **Install dependencies**:
@@ -56,7 +89,7 @@ sudo dnf install python3 git
    ```
 
 4. **Install the isolated browser**:
-   This downloads a local Chromium binary to your user cache. It does **not** install a system-wide browser.
+   This downloads a local Chromium binary to your user cache.
    - **Linux/macOS**: `~/.cache/ms-playwright/`
    - **Windows**: `%USERPROFILE%\AppData\Local\ms-playwright`
 
