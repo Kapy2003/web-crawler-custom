@@ -87,6 +87,10 @@ brew install python git
    ```bash
    pip install -r requirements.txt
    ```
+   # If it complains pip about virtual environment, use this:
+   ```bash
+   .venv/bin/python -m pip install Crawl4AI
+   ```
 
 4. **Install the isolated browser**:
    This downloads a local Chromium binary to your user cache.
