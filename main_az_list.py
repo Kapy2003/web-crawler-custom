@@ -26,7 +26,7 @@ async def crawl_anime_az_list():
     page_number = 1
     all_animes = []
     seen_names = set()
-    max_pages = 10  # Limit to no of pages for testing
+    max_pages = 10000  # Limit to no of pages for testing
 
     csv_file = "anime_az_list.csv"
 
@@ -39,6 +39,10 @@ async def crawl_anime_az_list():
                     if row.get('title'):
                         seen_names.add(row['title'])
             print(f"Resuming: found {len(seen_names)} animes already in {csv_file}")
+            
+            # Estimate starting page (optional optimization) or just start from 1
+            # Starting from 1 ensures we don't miss anything inserted earlier, 
+            # and the scraper is fast enough to skip duplicates.
         except Exception as e:
             print(f"Error reading existing CSV: {e}")
 
@@ -76,8 +80,10 @@ async def crawl_anime_az_list():
                         
                         all_animes.extend(animes) # Keep in memory just for stats or debugging?
                         print(f"Saved {len(animes)} new animes from page {page_number}")
+                    else:
+                        print(f"No new animes on page {page_number} (all duplicates). Continuing...")
 
-                    if should_stop or not animes:
+                    if should_stop:
                         print(f"Reached end of pages at page {page_number}.")
                         break
 
