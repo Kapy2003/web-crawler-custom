@@ -2,4 +2,7 @@
 .env
 *.csv
 __pycache__
+*.jsonl
+/backups/
+/data/
 

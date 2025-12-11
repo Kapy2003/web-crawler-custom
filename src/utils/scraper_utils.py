@@ -24,33 +24,33 @@ def get_browser_config() -> BrowserConfig:
     # https://docs.crawl4ai.com/core/browser-crawler-config/
     return BrowserConfig(
         browser_type="chromium",  # Type of browser to simulate
-        headless=False,  # Whether to run in headless mode (no GUI)
+        headless=True,  # Whether to run in headless mode (no GUI)
         verbose=True,  # Enable verbose logging
     )
 
 
-def get_llm_strategy() -> LLMExtractionStrategy:
-    """
-    Returns the configuration for the language model extraction strategy.
+# def get_llm_strategy() -> LLMExtractionStrategy:
+#     """
+#     Returns the configuration for the language model extraction strategy.
 
-    Returns:
-        LLMExtractionStrategy: The settings for how to extract data using LLM.
-    """
-    # https://docs.crawl4ai.com/api/strategies/#llmextractionstrategy
-    return LLMExtractionStrategy(
-        provider="groq/llama-3.3-70b-versatile",  # Using available Groq model
-        api_token=os.getenv("GROQ_API_KEY"),  # API token for authentication
-        schema=Anime.model_json_schema(),  # JSON schema of the data model
-        extraction_type="schema",  # Type of extraction to perform
-        instruction=(
-            "Extract all anime objects with 'title', 'rating', 'resolution', 'year', "
-            "and a 1-2 sentence description of the anime from the following content. "
-            "The rating is the content rating (e.g., PG-13, N/A), resolution is the video quality (e.g., HD, 4K), "
-            "and year is the release year. Leave 'watch_url' empty as it will be filled from the page metadata."
-        ),  # Instructions for the LLM
-        input_format="markdown",  # Format of the input content
-        verbose=True,  # Enable verbose logging
-    )
+#     Returns:
+#         LLMExtractionStrategy: The settings for how to extract data using LLM.
+#     """
+#     # https://docs.crawl4ai.com/api/strategies/#llmextractionstrategy
+#     return LLMExtractionStrategy(
+#         provider="groq/llama-3.3-70b-versatile",  # Using available Groq model
+#         api_token=os.getenv("GROQ_API_KEY"),  # API token for authentication
+#         schema=Anime.model_json_schema(),  # JSON schema of the data model
+#         extraction_type="schema",  # Type of extraction to perform
+#         instruction=(
+#             "Extract all anime objects with 'title', 'rating', 'resolution', 'year', "
+#             "and a 1-2 sentence description of the anime from the following content. "
+#             "The rating is the content rating (e.g., PG-13, N/A), resolution is the video quality (e.g., HD, 4K), "
+#             "and year is the release year. Leave 'watch_url' empty as it will be filled from the page metadata."
+#         ),  # Instructions for the LLM
+#         input_format="markdown",  # Format of the input content
+#         verbose=True,  # Enable verbose logging
+#     )
 
 
 def extract_canonical_url(html_content: str) -> str:
